@@ -1,92 +1,80 @@
 #include "elgamal.hpp"
 
-el_gamal::el_gamal(ZZ large_prime)
+el_gamal::el_gamal(ZZ large_prime, ZZ_p generator)
 {
-    ZZ_p::init(large_prime);
     this->p = large_prime;
-    cout << "enter the generator of group\n";
-    cin >> this->g;
-    ZZ x1 = alice_gen_pubKey();
-    bob();
-    alice(x1);
+    this->g = generator;
 }
 
-ZZ el_gamal::alice_gen_pubKey()
+void el_gamal::start_elgamal_encDec(ZZ_p secretKey, ZZ msg)
 {
-    ZZ x;
-    cout << "Enter secret key of alice" << endl;
-    cin >> x;
-    this->h = power(this->g, x);
-    return x;
+    gen_pubKey(secretKey);
+    ZZ y = RandomBnd(this->p);
+    encrypt_elgamal(msg, y);
+    ZZ msg1 = decrypt_elgamal(secretKey);
+    cout << "Decypted message is ::" << msg1 << endl;
 }
 
-void el_gamal::bob()
+void el_gamal::gen_pubKey(ZZ_p secretKey)
 {
-    ZZ bsecKey;
-    cout << "Enter Secret key of bob." << endl;
-    cin >> bsecKey;
-    int msg;
-    cout << "Enter a number\n";
-    cin >> msg;
-    encrypt_elgamal(msg, bsecKey);
-    digitalSign_elgamal(msg, bsecKey);
+    this->h = power(this->g, rep(secretKey));
 }
 
-void el_gamal::alice(ZZ asecretKey)
+void el_gamal::encrypt_elgamal(ZZ msg, ZZ y)
 {
-    ZZ msg = decrypt_elgamal(asecretKey);
-    verify_digitalSign_elgamal(msg);
+    ZZ_p shared = power(h, y);
+    (this->cipher).c1 = power(g, y);
+    (this->cipher).c2 = conv<ZZ_p>(msg * conv<ZZ>(shared));
+    cout << "Encrypted msg is ::" << (this->cipher).c1 << "  " << (this->cipher).c2 << endl;
 }
 
-void el_gamal::encrypt_elgamal(int msg, ZZ y)
-{
-    C1 = power(g, y);
-    C2 = msg * power(h, y);
-    cout << "encrypted msg is ::" << C1 << "  " << C2 << endl;
-}
-
-ZZ el_gamal::decrypt_elgamal(ZZ x)
+ZZ el_gamal::decrypt_elgamal(ZZ_p x)
 {
     ZZ_p msg;
-    ZZ_p C1x = power(this->C1, x);
+    ZZ_p C1x = power((this->cipher).c1, rep(x));
     C1x = 1 / C1x;
-    msg = (this->C2) * C1x;
-    cout << "Decoded message is ::" << msg << endl;
+    msg = ((this->cipher).c2) * C1x;
     return (conv<ZZ>(msg));
 }
 
-void el_gamal::digitalSign_elgamal(int msg, ZZ prvkeyB)
+void el_gamal::start_elgamal_digiSign(ZZ_p secKey, ZZ msg)
 {
-    ZZ y;
-    cout << "Enter value of y" << endl;
-    cin >> y;
+    gen_pubKey(secKey);
+    digitalSign_elgamal(msg, secKey);
+    verify_digitalSign_elgamal(msg);
+}
+
+void el_gamal::digitalSign_elgamal(ZZ msg, ZZ_p x)
+{
+    ZZ_p y;
+
+    while (1)
+    {
+        y = random_ZZ_p();
+        if (GCD(rep(y), this->p - 1) == 1)
+        {
+            break;
+        }
+    }
+    ZZ_p gamma = power(this->g, rep(y));
     ZZ_p::init(this->p - 1);
-    ZZ_p gamma = power(this->g, conv<ZZ>(y));
-
-    // cout << "gamma is ::" << this->gamma;
-
-    ZZ_p prvkeyBinv = 1 / conv<ZZ_p>(y);
-    ZZ_p arg1 = conv<ZZ_p>(prvkeyB) * conv<ZZ_p>(this->gamma);
-
-    // cout << "arg1::" << arg1 << endl;
-
-    ZZ_p delta = ((msg - arg1) * prvkeyBinv);
-    this->gamma = conv<ZZ>(gamma);
-    this->delta = conv<ZZ>(delta);
+    ZZ_p yInv = inv(y);
+    ZZ_p arg1 = x * gamma;
+    arg1 = conv<ZZ_p>(msg - conv<ZZ>(arg1));
+    ZZ_p delta = (arg1 * yInv);
+    (this->s1).gamma = (gamma);
+    (this->s1).delta = (delta);
+    ZZ_p::init(p);
 }
 
 void el_gamal::verify_digitalSign_elgamal(ZZ msg)
 {
-    ZZ_p a1 = power((this->h), this->gamma);
-    ZZ_p a2 = power(conv<ZZ_p>(this->gamma), conv<ZZ>(this->delta));
+    ZZ_p a1 = power((this->h), conv<ZZ>((this->s1).gamma));
+    ZZ_p a2 = power((this->s1).gamma, conv<ZZ>((this->s1).delta));
     ZZ_p res = a1 * a2;
-    ZZ_p rhs = power(conv<ZZ_p>(this->g), msg);
+    ZZ_p rhs = power(this->g, conv<ZZ>(msg));
     if (res == rhs)
-    {
         cout << "Signature Verified\n";
-    }
     else
-    {
         cout << "Signature Forged\n";
-    }
 }

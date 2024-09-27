@@ -11,19 +11,28 @@ int main()
 
         bruteattack_dlp(p, g, h);
 
+        // diffiehell
         p = conv<ZZ>("137");
         ZZ_p::init(p);
-        person alice(conv<ZZ_p>("15"));
-        person bob(conv<ZZ_p>("125"));
-        diffie_hellman d2(conv<ZZ_p>("3"));
-        d2.start_key_exchange(&alice, &bob);
 
-        bruteattack_dlp(p, d2.g, d2.A);
-        bruteattack_dlp(p, d2.g, d2.B);
+        dl_person alice(conv<ZZ_p>("15"));
+        dl_person bob(conv<ZZ_p>("125"));
 
-        // d2.eve();
+        ZZ_p A = alice.set_publickey(conv<ZZ_p>("3"));
+        ZZ_p B = bob.set_publickey(conv<ZZ_p>("3"));
 
-        // el_gamal e1(conv<ZZ>("467"));
+        alice.set_comshared(B);
+        bob.set_comshared(A);
+
+        bruteattack_dlp(p, conv<ZZ_p>("3"), A);
+        bruteattack_dlp(p, conv<ZZ_p>("3"), B);
+
+        // Elgamal
+        p = conv<ZZ>("467");
+        ZZ_p::init(p);
+        el_gamal e1(p, conv<ZZ_p>("2"));
+        // e1.start_elgamal_encDec(conv<ZZ_p>("5"), conv<ZZ>("9"));
+        e1.start_elgamal_digiSign(conv<ZZ_p>("127"), conv<ZZ>("100"));
 
         return 0;
 }
