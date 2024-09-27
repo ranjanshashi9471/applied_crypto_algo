@@ -2,8 +2,8 @@
 class el_gamal
 {
 private:
-    unsigned char *char_to_ascii(string in, unsigned int len);
-    unsigned char *ascii_to_char(unsigned char *in, unsigned int len);
+    // unsigned char *char_to_ascii(string in, unsigned int len);
+    // unsigned char *ascii_to_char(unsigned char *in, unsigned int len);
     void encrypt_elgamal(int msg, ZZ y);
     ZZ decrypt_elgamal(ZZ x);
     void digitalSign_elgamal(int msg, ZZ y);
