@@ -30,9 +30,22 @@ int main()
         // Elgamal
         p = conv<ZZ>("467");
         ZZ_p::init(p);
-        el_gamal e1(p, conv<ZZ_p>("2"));
-        // e1.start_elgamal_encDec(conv<ZZ_p>("5"), conv<ZZ>("9"));
-        e1.start_elgamal_digiSign(conv<ZZ_p>("127"), conv<ZZ>("100"));
+        ZZ_p secKey = conv<ZZ_p>("5");
+        g = conv<ZZ_p>("2");
+        ZZ msg = conv<ZZ>("9");
+
+        el_gamal e1(p, g);
+        e1.set_pubKey(secKey);
+        cipherText c = e1.encrypt(msg);
+        msg = e1.decrypt(secKey, c);
+
+        el_gamal e2(p, g);
+        secKey = conv<ZZ_p>("127");
+        msg = conv<ZZ>("100");
+
+        e2.set_pubKey(secKey);
+        signature s = e2.digitalSign(msg, secKey);
+        bool b = e2.verify_digitalSign(s, msg);
 
         return 0;
 }

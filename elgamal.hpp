@@ -15,12 +15,6 @@ typedef struct cipherText
 class el_gamal
 {
 private:
-    void encrypt_elgamal(ZZ msg, ZZ y);
-    ZZ decrypt_elgamal(ZZ_p x);
-
-    void digitalSign_elgamal(ZZ msg, ZZ_p y);
-    void verify_digitalSign_elgamal(ZZ msg);
-
 public:
     ZZ p;
     ZZ_p g, h;
@@ -28,7 +22,11 @@ public:
     cipherText cipher;
 
     el_gamal(ZZ large_prime, ZZ_p generator);
-    void start_elgamal_encDec(ZZ_p secKey, ZZ msg);
-    void start_elgamal_digiSign(ZZ_p secKey, ZZ msg);
-    void gen_pubKey(ZZ_p secKey);
+    void set_pubKey(ZZ_p secKey);
+
+    cipherText encrypt(ZZ msg);
+    ZZ decrypt(ZZ_p secKey, cipherText c);
+
+    signature digitalSign(ZZ msg, ZZ_p y);
+    bool verify_digitalSign(signature s, ZZ msg);
 };
