@@ -40,3 +40,15 @@ void elCurve::getAllPoints(vector<point> &points)
         }
     }
 }
+
+point elCurve::pointAdd(point P, point Q)
+{
+    ZZ_p lambda;
+    if ((P.x == Q.x) && (P.y == Q.y))
+    {
+        lambda = ((3 * (P.x) * (P.x)) + this->a) * inv(2 * P.y);
+    }
+    else
+    {
+    }
+}

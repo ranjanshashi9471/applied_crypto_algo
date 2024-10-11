@@ -17,4 +17,5 @@ public:
     elCurve(ZZ p, ZZ_p a, ZZ_p b);
     void getPoint(ZZ_p x, ZZ_p ySquare, vector<point> &points);
     void getAllPoints(vector<point> &points);
+    point pointAdd(point P, point Q);
 };
