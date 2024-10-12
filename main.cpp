@@ -51,12 +51,15 @@ int main()
         ZZ p = conv<ZZ>("11");
         ZZ_p::init(p);
         elCurve ec1(p, to_ZZ_p(1), to_ZZ_p(6));
-        vector<point> points;
-        ec1.getAllPoints(points);
-        for (int i = 0; i < points.size(); i++)
-        {
-                cout << "(" << points[i].x << ", " << points[i].y << ")\n";
-        }
+        // vector<point> points;
+        // ec1.getAllPoints(points);
+        // for (int i = 0; i < points.size(); i++)
+        // {
+        //         cout << "(" << points[i].x << ", " << points[i].y << ")\n";
+        // }
 
+        point P(to_ZZ_p(2), to_ZZ_p(7)), Q(to_ZZ_p(2), to_ZZ_p(4));
+        point R = ec1.pointAddDouble(P, Q);
+        R = ec1.scalarMult(4, P);
         return 0;
 }

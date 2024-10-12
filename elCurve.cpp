@@ -16,39 +16,81 @@ bool elCurve::chkResidue(ZZ_p ySquare)
     return (a == 1);
 }
 
-void elCurve::getPoint(ZZ_p x, ZZ_p ysquare, vector<point> &points)
+point elCurve::getY(const ZZ_p &ysquare)
 {
-    point p1, p2;
-    p1.x = x;
-    p2.x = x;
-    p1.y = power(ysquare, (this->p + 1) / 4);
-    p2.y = conv<ZZ_p>(-1 * p1.y);
-    points.push_back(p1);
-    points.push_back(p2);
+    point p;
+    p.x = power(ysquare, (this->p + 1) / 4);
+    p.y = conv<ZZ_p>(-1 * p.x);
+    return p;
 }
 
-void elCurve::getAllPoints(vector<point> &points)
+bool elCurve::isInfinity(const point &P)
 {
-    for (ZZ i = to_ZZ(0); i < p; i++)
-    {
-        ZZ_p ysqare = power(conv<ZZ_p>(i), to_ZZ(3));
-        ysqare += a * to_ZZ_p(i);
-        ysqare += b;
-        if (chkResidue(ysqare))
-        {
-            getPoint(to_ZZ_p(i), ysqare, points);
-        }
-    }
+    if (P.x == 0 && P.y == 1)
+        return true;
+    else
+        return false;
 }
 
-point elCurve::pointAdd(point P, point Q)
+point elCurve::pointAddDouble(const point &P, const point &Q)
 {
+    if (isInfinity(P))
+        return Q;
+    if (isInfinity(Q))
+        return P;
+
     ZZ_p lambda;
+    point R;
     if ((P.x == Q.x) && (P.y == Q.y))
     {
-        lambda = ((3 * (P.x) * (P.x)) + this->a) * inv(2 * P.y);
+        lambda = ((3 * (P.x) * (P.x)) + this->a) * (1 / (2 * P.y));
+    }
+    else if ((P.x == Q.x) && ((P.y + Q.y) == 0))
+    {
+        R.x = 0;
+        R.y = 1;
+        return R;
     }
     else
     {
+        lambda = (Q.y - P.y) * inv(Q.x - P.x);
     }
+    R.x = lambda * lambda - P.x - Q.x;
+    R.y = (lambda * (P.x - R.x)) - P.y;
+    return R;
+}
+
+point elCurve::scalarMult(long long m, const point &P)
+{
+    ZZ_p ysqare = power(P.x, to_ZZ(3));
+    ysqare += a * (P.x);
+    ysqare += b;
+    if (chkResidue(ysqare))
+    {
+        point y = getY(ysqare);
+        if (!(y.x == P.y || y.y == P.y))
+        {
+            return P;
+        }
+    }
+    point Q(to_ZZ_p(0), to_ZZ_p(1));
+    int bits = floor(log2(m)) + 1;
+    while (bits > 0)
+    {
+        int no = 1 & (m >> (bits - 1));
+        bits--;
+        if (no == 1)
+        {
+            // Double and Add
+            Q = pointAddDouble(Q, Q);
+            Q = pointAddDouble(P, Q);
+        }
+        else
+        {
+            Q = pointAddDouble(Q, Q);
+            // Double and skip
+        }
+    }
+    cout << "(" << Q.x << "," << Q.y << ")\n";
+    return Q;
 }
