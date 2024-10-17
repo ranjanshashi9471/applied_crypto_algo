@@ -1,17 +1,17 @@
 #include "elgamal.hpp"
 
-el_gamal::el_gamal(ZZ large_prime, ZZ_p generator)
+el_gamal::el_gamal(const ZZ &large_prime, const ZZ_p &generator)
 {
     this->p = large_prime;
     this->g = generator;
 }
 
-void el_gamal::set_pubKey(ZZ_p secretKey)
+void el_gamal::set_pubKey(const ZZ_p &secretKey)
 {
     this->h = power(this->g, rep(secretKey));
 }
 
-cipherText el_gamal::encrypt(ZZ msg)
+cipherText el_gamal::encrypt(const ZZ &msg)
 {
     cipherText c;
     ZZ y = RandomBnd(this->p);
@@ -22,7 +22,7 @@ cipherText el_gamal::encrypt(ZZ msg)
     return c;
 }
 
-ZZ el_gamal::decrypt(ZZ_p x, cipherText c)
+ZZ el_gamal::decrypt(const ZZ_p &x, const cipherText &c)
 {
     ZZ_p msg;
     ZZ_p C1x = power(c.c1, rep(x));
@@ -32,7 +32,7 @@ ZZ el_gamal::decrypt(ZZ_p x, cipherText c)
     return (conv<ZZ>(msg));
 }
 
-signature el_gamal::digitalSign(ZZ msg, ZZ_p x)
+signature el_gamal::digitalSign(const ZZ &msg, const ZZ_p &x)
 {
     signature s1;
     ZZ_p y;
@@ -54,7 +54,7 @@ signature el_gamal::digitalSign(ZZ msg, ZZ_p x)
     return s1;
 }
 
-bool el_gamal::verify_digitalSign(signature s1, ZZ msg)
+bool el_gamal::verify_digitalSign(const signature &s1, const ZZ &msg)
 {
     ZZ_p a1 = power((this->h), conv<ZZ>(s1.gamma));
     ZZ_p a2 = power(s1.gamma, conv<ZZ>(s1.delta));

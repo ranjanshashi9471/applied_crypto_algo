@@ -21,12 +21,12 @@ public:
     signature s1;
     cipherText cipher;
 
-    el_gamal(ZZ large_prime, ZZ_p generator);
-    void set_pubKey(ZZ_p secKey);
+    el_gamal(const ZZ &large_prime, const ZZ_p &generator);
+    void set_pubKey(const ZZ_p &secKey);
 
-    cipherText encrypt(ZZ msg);
-    ZZ decrypt(ZZ_p secKey, cipherText c);
+    cipherText encrypt(const ZZ &msg);
+    ZZ decrypt(const ZZ_p &secKey, const cipherText &c);
 
-    signature digitalSign(ZZ msg, ZZ_p y);
-    bool verify_digitalSign(signature s, ZZ msg);
+    signature digitalSign(const ZZ &msg, const ZZ_p &y);
+    bool verify_digitalSign(const signature &s, const ZZ &msg);
 };
