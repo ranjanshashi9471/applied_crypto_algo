@@ -14,4 +14,5 @@ ZZ_p dl_person::set_publickey(ZZ_p g)
 void dl_person::set_comshared(ZZ_p person2PubKey)
 {
     ZZ_p B1 = power(person2PubKey, conv<ZZ>(this->personSecret));
+    cout << "shared key is :" << B1 << endl;
 }

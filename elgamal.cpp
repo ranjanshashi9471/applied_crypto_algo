@@ -14,11 +14,13 @@ void el_gamal::set_pubKey(const ZZ_p &secretKey)
 cipherText el_gamal::encrypt(const ZZ &msg)
 {
     cipherText c;
-    ZZ y = RandomBnd(this->p);
+    ZZ y = to_ZZ("54");
+    // ZZ y = RandomBnd(this->p);
     ZZ_p shared = power(h, y);
-    c.c1 = power(g, y);
+    cout << "h^y is :" << shared << endl;
+    c.c1 = power(this->g, y);
     c.c2 = conv<ZZ_p>(msg * conv<ZZ>(shared));
-    cout << "Encrypted msg is ::" << c.c1 << "  " << c.c2 << endl;
+    cout << "Encrypted msg is :: c1:" << c.c1 << "  c2:" << c.c2 << endl;
     return c;
 }
 
@@ -26,7 +28,9 @@ ZZ el_gamal::decrypt(const ZZ_p &x, const cipherText &c)
 {
     ZZ_p msg;
     ZZ_p C1x = power(c.c1, rep(x));
+    cout << "c1^x is :" << C1x << endl;
     C1x = 1 / C1x;
+    cout << "inv(c1^x) is :" << C1x << endl;
     msg = (c.c2) * C1x;
     cout << "Decrypted msg is ::" << msg << endl;
     return (conv<ZZ>(msg));
