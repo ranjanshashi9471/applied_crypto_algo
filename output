@@ -1,0 +1,6 @@
+Factoring n = 1717 using Pollard's p-1 algorithm with bound B = 10
+a is 815
+New (a^i%n) = 1463
+GCD(a-1, n) = 17
+A non-trivial factor of 1717 is 17
+Other factor is 101

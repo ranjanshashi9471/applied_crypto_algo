@@ -1,6 +1,8 @@
 #include "elCurveIES.hpp"
+#include <unordered_map>
 
-elCurve::elCurve(const ZZ &p) {
+elCurve::elCurve(const ZZ &p)
+{
   this->p = p; // group Zp
 
   this->e1.a = 23; // curve parameters a&b
@@ -12,26 +14,104 @@ elCurve::elCurve(const ZZ &p) {
   this->elcurve_order = this->generateAllPoints();
 }
 
-encryptedText elCurve::elCurveEncrypt(const ZZ_p &msg, const point &Q) {
+// ZZ_p elCurve::pollardRhoAttack()
+// {
+//   ZZ_p::init(this->p);
+//   point tortoise = {to_ZZ_p(0), to_ZZ_p(0)}; // a0, b0
+//   point r0 = scalarMult(random_ZZ_p(), this->generator);
+//   point prev_r0;
+//   ZZ_p diff_a;
+//   ZZ_p diff_b;
+//   unordered_map<point, point> savedState;
+//   savedState[r0] = tortoise;
+
+//   // Floyd's cycle-finding algorithm
+//   do
+//   {
+//     prev_r0 = r0;
+//     ZZ_p::init(this->p);
+//     r0 = pointAddDouble(scalarMult(savedState[prev_r0].x, this->generator), scalarMult(savedState[prev_r0].y, this->pubKey));
+//     cout << "r0 is x " << r0.x << ", y " << r0.y << endl;
+//     ZZ_p::init(rep(this->elcurve_order));
+//     if (rep(r0.x) % 3 == 0)
+//     {
+//       tortoise.x = (savedState[prev_r0].x + 1);
+//       tortoise.y = (savedState[prev_r0].y);
+//     }
+//     else if (rep(r0.x) % 3 == 1)
+//     {
+//       tortoise.x = (2 * savedState[prev_r0].x);
+//       tortoise.y = (2 * savedState[prev_r0].y);
+//     }
+//     else
+//     {
+//       tortoise.x = savedState[prev_r0].x;
+//       tortoise.y = (savedState[prev_r0].y + 1);
+//     }
+//     cout << "tortoise a: " << tortoise.x << ", b: " << tortoise.y << endl;
+//     if (savedState.find(r0) != savedState.end())
+//     {
+//       cout << "found duplicate r" << endl;
+//       diff_b = (savedState[r0].y - tortoise.y);
+//       if (diff_b != 0)
+//       {
+//         break;
+//       }
+//       else
+//       {
+//         cout << "diff = 0" << endl;
+//       }
+//     }
+//     else
+//     {
+//       savedState[r0] = tortoise;
+//     }
+//   } while (1);
+
+//   // Collision detected: solve for x
+//   diff_a = (tortoise.x - savedState[r0].x);
+//   diff_b = (savedState[r0].y - tortoise.y);
+
+//   // Solve diff_a ≡ diff_b * x (mod p-1)
+//   ZZ x;
+//   if (InvModStatus(x, rep(diff_b), rep(this->elcurve_order)) == 0)
+//   {
+//     cout << "inv(a11-a5)=" << x << endl;
+//     x = (x * rep(diff_a)) % rep(this->elcurve_order);
+//     if (x < 0)
+//       x += rep(this->elcurve_order); // Ensure positive result
+
+//     cout << "answer is X " << to_ZZ_p(x) << endl;
+//     return to_ZZ_p(x);
+//   }
+//   else
+//   {
+//     cout << "Failure: No modular inverse for diff_b exists." << endl;
+//     return to_ZZ_p(-1);
+//   }
+// }
+
+encryptedText elCurve::elCurveEncrypt(const ZZ_p &msg, const point &Q)
+{
+  cout << "encryption start" << endl;
   encryptedText e1;
-  ZZ_p y = to_ZZ_p(2);
+  ZZ_p y = to_ZZ_p(3);
   // ZZ_p y = random_ZZ_p();
   point tmp = scalarMult(y, this->generator);
   cout << "yP is X: " << tmp.x << "Y: " << tmp.y << endl;
-  // e1.c1.x = tmp.x;
-  // e1.c1.y = tmp.y;
+
   e1.c1.x = tmp.x;
   e1.c1.y = rep(tmp.y) % 2;
   tmp = scalarMult(y, Q);
   cout << "yQ is X: " << tmp.x << "Y: " << tmp.y << endl;
-  // e1.c2 = this->pointAddDouble(tmp, msg);
-  // cout << "e1.c2 is X: " << e1.c2.x << "Y: " << e1.c2.y << endl;
   e1.c2 = tmp.x * msg;
   cout << "e1.c2: " << e1.c2 << endl;
   return e1;
 }
 
-ZZ_p elCurve::elCurveDecrypt(const encryptedText &e1, const ZZ_p &secret) {
+ZZ_p elCurve::elCurveDecrypt(const encryptedText &e1, const ZZ_p &secret)
+{
+  cout << "decryption" << endl;
   ZZ_p ysq = this->getYsq(e1.c1.x);
   cout << "ysq at decrypt: " << ysq << endl;
   point tmp = getYCoordinate(ysq);
@@ -48,11 +128,13 @@ ZZ_p elCurve::elCurveDecrypt(const encryptedText &e1, const ZZ_p &secret) {
 }
 
 elCurve_signature elCurve::elCurveDigiSign(const ZZ_p &secret,
-                                           const ZZ_p &msg) {
+                                           const ZZ_p &msg)
+{
   ZZ_p::init(rep(this->elcurve_order));
   elCurve_signature esign;
-  do {
-    ZZ_p y = to_ZZ_p(2); // random_ZZ_p();
+  do
+  {
+    ZZ_p y = to_ZZ_p(3); // random_ZZ_p();
     cout << "Digital Signature Begins\n";
     ZZ_p::init(this->p);
     point tmp = this->scalarMult(y, this->generator);
@@ -74,7 +156,8 @@ elCurve_signature elCurve::elCurveDigiSign(const ZZ_p &secret,
 }
 
 bool elCurve::elCurveVerifySign(const elCurve_signature &digisign,
-                                const ZZ_p &msg) {
+                                const ZZ_p &msg)
+{
   cout << "Digital Signature Verification Begins\n";
   ZZ_p::init(rep(this->elcurve_order));
   ZZ_p w = inv(digisign.s);
@@ -95,7 +178,8 @@ bool elCurve::elCurveVerifySign(const elCurve_signature &digisign,
   return (tmp.x == digisign.r);
 }
 
-point elCurve::pointAddDouble(const point &P, const point &Q) {
+point elCurve::pointAddDouble(const point &P, const point &Q)
+{
   cout << "pointAddDouble" << endl;
   if (isInfinity(P))
     return Q;
@@ -104,7 +188,8 @@ point elCurve::pointAddDouble(const point &P, const point &Q) {
 
   ZZ_p lambda;
   point R;
-  if ((P.x == Q.x) && (P.y == Q.y)) {
+  if ((P.x == Q.x) && (P.y == Q.y))
+  {
     ZZ_p arg1 = P.x * P.x;
     cout << "x1^2 is: " << arg1 << endl;
     arg1 *= 3;
@@ -115,48 +200,60 @@ point elCurve::pointAddDouble(const point &P, const point &Q) {
     yin2 = 1 / yin2;
     cout << "inv(2y) is: " << yin2 << endl;
     lambda = (arg1 * yin2);
-  } else if ((P.x == Q.x) && ((P.y + Q.y) == 0)) {
+  }
+  else if ((P.x == Q.x) && ((P.y + Q.y) == 0))
+  {
     R.x = 0;
     R.y = 1;
     return R;
-  } else {
+  }
+  else
+  {
     ZZ_p tmp = inv(Q.x - P.x);
     cout << "inv(Q.x - P.x) :" << tmp << endl;
     lambda = (Q.y - P.y) * tmp;
-    cout << "lambda is :" << lambda << endl;
   }
+  cout << "lambda is :" << lambda << endl;
   R.x = lambda * lambda - P.x - Q.x;
   R.y = (lambda * (P.x - R.x)) - P.y;
   return R;
 }
 
-point elCurve::scalarMult(const ZZ_p &x, const point &P) {
+point elCurve::scalarMult(const ZZ_p &x, const point &P)
+{
   ZZ_p::init(this->p);
   cout << "Scalar Multiplication of x:" << x << " , (" << P.x << "," << P.y
        << ")" << endl;
   ZZ m = rep(x);
-  ZZ_p ysqare = power(P.x, to_ZZ(3));
-  ysqare += (this->e1.a) * (P.x);
-  ysqare += this->e1.b;
-  if (chkResidue(ysqare)) {
-    point y = getYCoordinate(
-        ysqare); // it holds both the y coordinates corresponding to x of P.
-    if (!(y.x == P.y || y.y == P.y))
-      return P;
-  }
+  // ZZ_p ysqare = power(P.x, to_ZZ(3));
+  // ysqare += (this->e1.a) * (P.x);
+  // ysqare += this->e1.b;
+  // if (chkResidue(ysqare))
+  // {
+  //   point y = getYCoordinate(ysqare); // it holds both the y coordinates corresponding to x of P.
+  //   if (!(y.x == P.y || y.y == P.y))
+  //   {
+  //     cout << "!(y.x == P.y || y.y == P.y)" << endl;
+  //     return P;
+  //   }
+  // }
   point Q(to_ZZ_p(0), to_ZZ_p(1));
   unsigned long long totbits = NumBits(m);
-  while (totbits > 0) {
+  while (totbits > 0)
+  {
     ZZ no = 1 & (m >> (totbits - 1));
     totbits--;
-    if (no == 1) {
+    if (no == 1)
+    {
       // Double and Add
       cout << "Double and add" << endl;
       Q = pointAddDouble(Q, Q);
       cout << "Result is X:" << Q.x << " Y:" << Q.y << endl;
       Q = pointAddDouble(P, Q);
       cout << "Result is X:" << Q.x << " Y:" << Q.y << endl;
-    } else {
+    }
+    else
+    {
       cout << "Double" << endl;
       Q = pointAddDouble(Q, Q); // Double and skip
       cout << "Result is X:" << Q.x << " Y:" << Q.y << endl;
@@ -166,12 +263,15 @@ point elCurve::scalarMult(const ZZ_p &x, const point &P) {
   return Q;
 }
 
-ZZ_p elCurve::generateAllPoints() {
+ZZ_p elCurve::generateAllPoints()
+{
   ZZ_p count = to_ZZ_p(0);
-  for (ZZ i = to_ZZ(0); i < this->p; i++) {
+  for (ZZ i = to_ZZ(0); i < this->p; i++)
+  {
     ZZ_p ysq = this->getYsq(to_ZZ_p(i));
     cout << "i is:" << i << " ysq is:" << ysq << endl;
-    if (chkResidue(ysq)) {
+    if (chkResidue(ysq))
+    {
       point p = this->getYCoordinate(ysq);
       cout << "x:" << i << "y1:" << p.x << "y2:" << p.y << endl;
       count += 2;
@@ -182,7 +282,8 @@ ZZ_p elCurve::generateAllPoints() {
   return count;
 }
 
-bool elCurve::chkResidue(const ZZ_p &ySquare) {
+bool elCurve::chkResidue(const ZZ_p &ySquare)
+{
   // works for all primes(p) except 2
   // y^2=a%p
   ZZ_p a = power(ySquare, (this->p - 1) / 2);
@@ -190,9 +291,11 @@ bool elCurve::chkResidue(const ZZ_p &ySquare) {
   return (a == 1);
 }
 
-point elCurve::getRandomPoint() {
+point elCurve::getRandomPoint()
+{
   ZZ_p x, ysq;
-  do {
+  do
+  {
     x = random_ZZ_p();
     ysq = this->getYsq(x);
   } while (!chkResidue(ysq));
@@ -204,12 +307,14 @@ point elCurve::getRandomPoint() {
   return p;
 }
 
-ZZ_p elCurve::getYsq(const ZZ_p &x) {
+ZZ_p elCurve::getYsq(const ZZ_p &x)
+{
   ZZ_p ysq = power(x, to_ZZ(3)) + (this->e1.a * x) + this->e1.b;
   return ysq;
 }
 
-point elCurve::getYCoordinate(const ZZ_p &ysq) {
+point elCurve::getYCoordinate(const ZZ_p &ysq)
+{
   // ZZ_p ysq = this->getYsq(x);
   point p1;
   p1.x = power(ysq, (this->p + 1) / 4);
@@ -227,35 +332,41 @@ point elCurve::getYCoordinate(const ZZ_p &ysq) {
 //   }
 // }
 
-bool elCurve::isInfinity(const point &P) {
+bool elCurve::isInfinity(const point &P)
+{
   if (P.x == 0 && P.y == 1)
     return true;
   else
     return false;
 }
 
-point elCurve::pointNegation(const point &P) {
+point elCurve::pointNegation(const point &P)
+{
   point p(P.x, -1 * P.y);
 
   // p.y = to_ZZ_p(this->p - conv<ZZ>(p.y));
   return p;
 }
 
-bool elCurve::chkSingularity(const ellipt_curve &parameters) {
+bool elCurve::chkSingularity(const ellipt_curve &parameters)
+{
   ZZ_p tmp = ((4 * power(parameters.a, to_ZZ(3))) +
               (27 * power(parameters.b, to_ZZ(2))));
   return (tmp == 0);
 }
 
-ellipt_curve elCurve::getNonSingCurParams() {
+ellipt_curve elCurve::getNonSingCurParams()
+{
   ellipt_curve params;
-  do {
+  do
+  {
     params.a = random_ZZ_p();
     params.b = random_ZZ_p();
   } while (chkSingularity(params));
   return params;
 }
 
-void elCurve::setPublicKey(const ZZ_p &secret) {
+void elCurve::setPublicKey(const ZZ_p &secret)
+{
   this->pubKey = this->scalarMult(secret, this->generator);
 }

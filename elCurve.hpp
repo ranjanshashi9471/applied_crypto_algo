@@ -8,18 +8,18 @@ typedef struct point
   point(ZZ_p x, ZZ_p y) : x(x), y(y) {}
 } point;
 
-typedef struct compressedPoint
-{
-  ZZ_p x;
-  bool y;
-  compressedPoint() : x(0), y(1) {}
-  compressedPoint(ZZ_p x, bool y) : x(x), y(y) {}
-} compressedPoint;
+// typedef struct compressedPoint
+// {
+//   ZZ_p x;
+//   bool y;
+//   compressedPoint() : x(0), y(1) {}
+//   compressedPoint(ZZ_p x, bool y) : x(x), y(y) {}
+// } compressedPoint;
 
 typedef struct encryptedText
 {
-  compressedPoint c1;
-  ZZ_p c2;
+  point c1;
+  point c2;
 } encryptedText;
 
 typedef struct ellipt_curve
@@ -59,8 +59,8 @@ public:
   point pointAddDouble(const point &P, const point &Q);
   point scalarMult(const ZZ_p &m, const point &P);
   point pointNegation(const point &P);
-  encryptedText elCurveEncrypt(const ZZ_p &msg, const point &Q);
-  ZZ_p elCurveDecrypt(const encryptedText &e1, const ZZ_p &secret);
+  encryptedText elCurveEncrypt(const point &msg, const point &Q);
+  point elCurveDecrypt(const encryptedText &e1, const ZZ_p &secret);
   elCurve_signature elCurveDigiSign(const ZZ_p &secret, const ZZ_p &msg);
   bool elCurveVerifySign(const elCurve_signature &digisign, const ZZ_p &msg);
 };

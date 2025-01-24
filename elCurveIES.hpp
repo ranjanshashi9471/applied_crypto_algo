@@ -65,4 +65,5 @@ public:
     ZZ_p elCurveDecrypt(const encryptedText &e1, const ZZ_p &secret);
     elCurve_signature elCurveDigiSign(const ZZ_p &secret, const ZZ_p &msg);
     bool elCurveVerifySign(const elCurve_signature &digisign, const ZZ_p &msg);
+    ZZ_p pollardRhoAttack();
 };

@@ -14,4 +14,6 @@ public:
     ZZ_p generateA(const ZZ &phi);
     ZZ rsaEncrypt(const int &msg, const ZZ &n, const ZZ &B);
     int rsaDecrypt(const ZZ &encrypted, const ZZ &n, const ZZ &A);
+    ZZ rsaDigiSign(const int &msg, const ZZ &A, const ZZ &n);
+    bool verifyDigiSign(const int &msg, const ZZ &B, const ZZ &n, const ZZ &sign);
 };
